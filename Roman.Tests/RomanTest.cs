@@ -105,7 +105,7 @@ public class RomanTest
         StringAssert.Contains(ex.Message, "between 1 and 3999");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("I", 1)]
     [DataRow("i", 1)]
     [DataRow("  V  ", 5)]
@@ -766,7 +766,7 @@ public class RomanTest
 
     #region Tests ToString
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(1, "I")]
     [DataRow(2, "II")]
     [DataRow(3, "III")]
@@ -810,7 +810,7 @@ public class RomanTest
 
     #region Tests Round-trip
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(1)]
     [DataRow(4)]
     [DataRow(9)]

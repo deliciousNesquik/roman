@@ -21,7 +21,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
     /// </exception>
     public Roman(int value)
     {
-        if (value < 1 || value > 3999)
+        if (value is < 1 or > 3999)
             throw new ArgumentOutOfRangeException(nameof(value), "Value must be between 1 and 3999.");
         _value = value;
     }
@@ -42,45 +42,43 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 
     public static Roman operator +(Roman a, Roman b)
     {
-        if (a is null) throw new ArgumentNullException(nameof(a));
-        if (b is null) throw new ArgumentNullException(nameof(b));
+        ArgumentNullException.ThrowIfNull(a);
+        ArgumentNullException.ThrowIfNull(b);
 
         var sum = (long)a._value + b._value;
-        if (sum > 3999) throw new ArgumentOutOfRangeException(nameof(b), "Resulting value must be ≤ 3999.");
-        return new Roman((int)sum);
+        return sum > 3999 ? throw new ArgumentOutOfRangeException(nameof(b), "Resulting value must be ≤ 3999.") : new Roman((int)sum);
     }
 
     public static Roman operator -(Roman a, Roman b)
     {
-        if (a is null) throw new ArgumentNullException(nameof(a));
-        if (b is null) throw new ArgumentNullException(nameof(b));
+        ArgumentNullException.ThrowIfNull(a);
+        ArgumentNullException.ThrowIfNull(b);
 
         var result = a._value - b._value;
-        if (result < 1)
-            throw new ArgumentOutOfRangeException(nameof(b),
-                "Roman numerals cannot represent zero or negative values.");
-        return new Roman(result);
+        return result < 1
+            ? throw new ArgumentOutOfRangeException(nameof(b),
+                "Roman numerals cannot represent zero or negative values.")
+            : new Roman(result);
     }
 
     public static Roman operator *(Roman a, Roman b)
     {
-        if (a is null) throw new ArgumentNullException(nameof(a));
-        if (b is null) throw new ArgumentNullException(nameof(b));
+        ArgumentNullException.ThrowIfNull(a);
+        ArgumentNullException.ThrowIfNull(b);
 
         var prod = (long)a._value * b._value;
-        if (prod > 3999) throw new ArgumentOutOfRangeException(nameof(b), "Resulting value must be ≤ 3999.");
-        return new Roman((int)prod);
+        return prod > 3999 ? throw new ArgumentOutOfRangeException(nameof(b), "Resulting value must be ≤ 3999.") : new Roman((int)prod);
     }
 
     public static Roman operator /(Roman a, Roman b)
     {
-        if (a is null) throw new ArgumentNullException(nameof(a));
-        if (b is null) throw new ArgumentNullException(nameof(b));
+        ArgumentNullException.ThrowIfNull(a);
+        ArgumentNullException.ThrowIfNull(b);
 
         var result = a._value / b._value;
-        if (result < 1)
-            throw new ArgumentOutOfRangeException(nameof(b), "Resulting value must be >= 1.");
-        return new Roman(result);
+        return result < 1
+            ? throw new ArgumentOutOfRangeException(nameof(b), "Resulting value must be >= 1.")
+            : new Roman(result);
     }
 
     public static bool operator >(Roman? a, Roman? b)
@@ -164,7 +162,6 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
             result = null;
             return false;
         }
-        
     }
 
     public static implicit operator int(Roman r)
@@ -225,18 +222,15 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
             before = current;
         }
 
-        if (result < 1 || result > 3999)
-            throw new ArgumentOutOfRangeException(nameof(roman), "Value must be between 1 and 3999.");
-
-        return result;
+        return result is < 1 or > 3999 ? throw new ArgumentOutOfRangeException(nameof(roman), "Value must be between 1 and 3999.") : result;
     }
 
     private static string ToRoman(int value)
     {
-        if (value < 1 || value > 3999)
+        if (value is < 1 or > 3999)
             throw new ArgumentOutOfRangeException(nameof(value), "Value must be between 1 and 3999.");
 
-        // Максимальная длинна римского числа (15 символов) 1 символ для безопасности
+        // Максимальная длина римского числа (15 символов) 1 символ для безопасности
         Span<char> buffer = stackalloc char[16];
 
         var pos = 0;
@@ -257,8 +251,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 
     public int CompareTo(Roman? other)
     {
-        if (other is null) return 1;
-        return _value.CompareTo(other._value);
+        return other is null ? 1 : _value.CompareTo(other._value);
     }
 
     public bool Equals(Roman? other)
