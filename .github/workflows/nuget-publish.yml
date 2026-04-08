@@ -32,12 +32,23 @@ jobs:
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
 
       - name: Pack (nupkg + snupkg)
+        shell: bash
         run: |
-          dotnet pack Roman/Roman.csproj -c Release --no-build -o ./artifacts \
-            /p:PackageVersion=${VERSION} \
-            /p:ContinuousIntegrationBuild=true \
-            /p:IncludeSymbols=true \
+          args=(
+            Roman/Roman.csproj
+            -c Release
+            --no-build
+            -o ./artifacts
+            /p:ContinuousIntegrationBuild=true
+            /p:IncludeSymbols=true
             /p:SymbolPackageFormat=snupkg
+          )
+
+          if [[ -n "${VERSION}" ]]; then
+            args+=(/p:PackageVersion="${VERSION}")
+          fi
+
+          dotnet pack "${args[@]}"
 
       - name: Publish to NuGet
         env:
