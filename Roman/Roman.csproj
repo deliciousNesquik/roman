@@ -4,6 +4,15 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        
+        <PackageId>Roman</PackageId>
+        <Authors>deliciousNesquik</Authors>
+        <Description>Roman numerals converter/library.</Description>
+        <PackageTags>roman;numerals</PackageTags>
+        <RepositoryUrl>https://github.com/deliciousNesquik/roman</RepositoryUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     </PropertyGroup>
-
+    
 </Project>
