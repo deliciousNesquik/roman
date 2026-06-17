@@ -1,4 +1,4 @@
-﻿namespace Roman;
+﻿namespace RomanNumerals;
 
 public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 {

@@ -2,7 +2,7 @@
 using JetBrains.Annotations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Roman.Tests;
+namespace RomanNumerals.Tests;
 
 [TestClass]
 [TestSubject(typeof(Roman))]
