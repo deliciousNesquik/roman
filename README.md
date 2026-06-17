@@ -2,628 +2,276 @@
 
 [![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/)
 [![C#](https://img.shields.io/badge/C%23-13.0-239120)](https://docs.microsoft.com/en-us/dotnet/csharp/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
-[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)]()
+[![NuGet](https://img.shields.io/nuget/v/Roman.svg)](https://www.nuget.org/packages/Roman/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/deliciousNesquik/roman/blob/main/LICENSE)
 
-Библиотека для работы с римскими числами в C#. Поддерживает преобразование между арабскими и римскими числами, арифметические операции и сравнение.
+A small, dependency-free C# library for Roman numerals: conversion to and from Arabic
+integers, arithmetic, and comparison. Immutable, allocation-light, and fully unit-tested.
 
-## 📋 Содержание
+**🌐 Language:** **English** · [Русский](https://github.com/deliciousNesquik/roman/blob/main/README.ru.md)
 
-- [Возможности](#-возможности)
-- [Установка](#-установка)
-- [Быстрый старт](#-быстрый-старт)
-- [Использование](#-использование)
-  - [Создание римских чисел](#создание-римских-чисел)
-  - [Преобразования](#преобразования)
-  - [Арифметические операции](#арифметические-операции)
-  - [Сравнение](#сравнение)
-- [Ограничения](#-ограничения)
-- [API Reference](#-api-reference)
-- [Примеры](#-примеры)
-- [Тестирование](#-тестирование)
-- [Производительность](#-производительность)
-- [Участие в разработке](#-участие-в-разработке)
-- [Лицензия](#-лицензия)
-- [Авторы](#-авт��ры)
+## Table of contents
 
-## ✨ Возможности
+- [Features](#features)
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Usage](#usage)
+  - [Creating values](#creating-values)
+  - [Conversions](#conversions)
+  - [Arithmetic](#arithmetic)
+  - [Comparison](#comparison)
+  - [Parsing modes (lenient / strict)](#parsing-modes-lenient--strict)
+- [Limitations](#limitations)
+- [API reference](#api-reference)
+- [Performance](#performance)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [License](#license)
 
-- ✅ Преобразование арабских чисел (1-3999) в римские и обратно
-- ✅ Арифметические операции: сложение, вычитание, умножение, деление
-- ✅ Операторы сравнения: `>`, `<`, `>=`, `<=`, `==`, `!=`
-- ✅ Реализация `IComparable<Roman>` и `IEquatable<Roman>`
-- ✅ Неизменяемый (immutable) тип
-- ✅ Поддержка `null`-значений в операторах сравнения
-- ✅ Парсинг строк в нижнем и верхнем регистре
-- ✅ Лояльный и строгий (`RomanStyle.Strict`) режимы парсинга
-- ✅ Метод `TryParse` для безопасного парсинга
-- ✅ Оптимизированное преобразование с использованием `Span<char>`
-- ✅ 100% покрытие unit-тестами
+## Features
 
-## 📦 Установка
+- Convert Arabic numbers (1–3999) to Roman and back
+- Arithmetic: addition, subtraction, multiplication, division
+- Comparison operators: `>`, `<`, `>=`, `<=`, `==`, `!=`
+- Implements `IComparable<Roman>` and `IEquatable<Roman>`
+- Immutable type — every operation returns a new value
+- Well-defined `null` semantics in comparison operators
+- Case-insensitive parsing with surrounding whitespace trimmed
+- Lenient (default) and strict (`RomanStyle.Strict`) parsing modes
+- `TryParse` for exception-free parsing
+- Allocation-light conversion via `stackalloc Span<char>`
+- No external dependencies
 
-### Через .NET CLI
+## Installation
 
 ```bash
+# .NET CLI
 dotnet add package Roman
 ```
 
-### Через NuGet Package Manager
-
-```bash
+```powershell
+# Package Manager
 Install-Package Roman
 ```
 
-### Через PackageReference
-
 ```xml
-<PackageReference Include="Roman" Version="1.1.0" />
+<!-- PackageReference -->
+<PackageReference Include="Roman" Version="1.1.1" />
 ```
 
-### Ручная установка
-
-1. Клонируйте репозиторий:
-```bash
-git clone https://github.com/deliciousNesquik/roman.git
-```
-
-2. Добавьте проект в ваше решение:
-```bash
-dotnet sln add roman/Roman/Roman.csproj
-```
-
-## 🚀 Быстрый старт
+## Quick start
 
 ```csharp
-using Roman;
+using RomanNumerals;
 
-// Создание из целого числа
-var roman1 = new Roman(42);
-Console.WriteLine(roman1);  // XLII
-
-// Создание из строки
-var roman2 = new Roman("XIX");
-Console.WriteLine(roman2.ToInt());  // 19
-
-// Арифметические операции
-var sum = roman1 + roman2;
-Console.WriteLine(sum);  // LXI (61)
-
-// Сравнение
-if (roman1 > roman2)
-{
-    Console.WriteLine("42 больше 19");
-}
-
-// Безопасный парсинг
-if (Roman.TryParse("MCMXCIV", out var year))
-{
-    Console.WriteLine($"Год: {year.ToInt()}");  // Год: 1994
-}
-```
-
-## 📖 Использование
-
-### Создание римских чисел
-
-#### Из целого числа
-
-```csharp
-var roman = new Roman(1984);
-Console.WriteLine(roman);  // MCMLXXXIV
-```
-
-#### Из строки
-
-```csharp
-var roman = new Roman("MMXXIII");
-Console.WriteLine(roman.ToInt());  // 2023
-
-// Поддержка нижнего регистра и пробелов
-var roman2 = new Roman("  xlii  ");
-Console.WriteLine(roman2.ToInt());  // 42
-```
-
-#### Копирование
-
-```csharp
-var original = new Roman(100);
-var copy = new Roman(original);
-Console.WriteLine(copy);  // C
-```
-
-### Преобразования
-
-#### Parse
-
-```csharp
-// Из int
-var roman1 = Roman.Parse(500);
-
-// Из string
-var roman2 = Roman.Parse("D");
-```
-
-#### TryParse
-
-```csharp
-// Безопасный парсинг int
-if (Roman.TryParse(42, out var roman1))
-{
-    Console.WriteLine(roman1);  // XLII
-}
-
-// Безопасный парсинг string
-if (Roman.TryParse("invalid", out var roman2))
-{
-    // Не выполнится
-}
-else
-{
-    Console.WriteLine("Неверный формат");
-}
-```
-
-#### Явные и неявные преобразования
-
-```csharp
-// Неявное преобразование Roman → int
-var roman = new Roman(42);
-int value = roman;  // 42
-
-// Явное преобразование int → Roman
-var roman2 = (Roman)99;
-Console.WriteLine(roman2);  // XCIX
-```
-
-### Арифметические операции
-
-#### Сложение
-
-```csharp
-var a = new Roman(10);
-var b = new Roman(5);
-var sum = a + b;
-Console.WriteLine(sum);  // XV (15)
-```
-
-#### Вычитание
-
-```csharp
-var a = new Roman(50);
-var b = new Roman(20);
-var diff = a - b;
-Console.WriteLine(diff);  // XXX (30)
-
-// Результат должен быть >= 1
-try
-{
-    var invalid = a - a;  // Ошибка!
-}
-catch (ArgumentOutOfRangeException ex)
-{
-    Console.WriteLine("Римские числа не могут быть <= 0");
-}
-```
-
-#### Умножение
-
-```csharp
-var a = new Roman(7);
-var b = new Roman(8);
-var product = a * b;
-Console.WriteLine(product);  // LVI (56)
-
-// Результат не может превышать 3999
-try
-{
-    var overflow = new Roman(2000) * new Roman(3);  // Ошибка!
-}
-catch (ArgumentOutOfRangeException ex)
-{
-    Console.WriteLine("Результат превышает 3999");
-}
-```
-
-#### Деление
-
-```csharp
-var a = new Roman(20);
-var b = new Roman(4);
-var quotient = a / b;
-Console.WriteLine(quotient);  // V (5)
-
-// Целочисленное деление
-var a2 = new Roman(10);
-var b2 = new Roman(3);
-var result = a2 / b2;
-Console.WriteLine(result);  // III (3)
-
-// Результат должен быть >= 1
-try
-{
-    var invalid = new Roman(1) / new Roman(2);  // Ошибка!
-}
-catch (ArgumentOutOfRangeException ex)
-{
-    Console.WriteLine("Результат деления < 1");
-}
-```
-
-### Сравнение
-
-#### Операторы сравнения
-
-```csharp
-var a = new Roman(50);
-var b = new Roman(30);
-
-Console.WriteLine(a > b);   // true
-Console.WriteLine(a < b);   // false
-Console.WriteLine(a >= b);  // true
-Console.WriteLine(a <= b);  // false
-Console.WriteLine(a == b);  // false
-Console.WriteLine(a != b);  // true
-```
-
-#### CompareTo
-
-```csharp
-var a = new Roman(50);
-var b = new Roman(30);
-
-int result = a.CompareTo(b);
-// result > 0, так как a больше b
-
-Console.WriteLine(result > 0);  // true
-```
-
-#### Equals
-
-```csharp
+// From an integer
 var a = new Roman(42);
-var b = new Roman(42);
-var c = new Roman(24);
+Console.WriteLine(a);            // XLII
 
-Console.WriteLine(a.Equals(b));  // true
-Console.WriteLine(a.Equals(c));  // false
-Console.WriteLine(a.Equals(null));  // false
+// From a string
+var b = new Roman("XIX");
+Console.WriteLine(b.ToInt());    // 19
+
+// Arithmetic
+Console.WriteLine(a + b);        // LXI  (61)
+
+// Comparison
+if (a > b)
+    Console.WriteLine("42 > 19");
+
+// Exception-free parsing
+if (Roman.TryParse("MCMXCIV", out var year))
+    Console.WriteLine(year.ToInt());   // 1994
 ```
 
-#### Сравнение с null
+> **Note:** the type is `Roman`, the namespace is `RomanNumerals`. Add `using RomanNumerals;`
+> and use `new Roman(...)`.
+
+## Usage
+
+### Creating values
 
 ```csharp
-Roman a = new Roman(5);
-Roman b = null;
-
-Console.WriteLine(a > b);   // true  (значение больше null)
-Console.WriteLine(b < a);   // true  (null меньше значения)
-Console.WriteLine(a == b);  // false
-Console.WriteLine(a != b);  // true
-
-Roman c = null;
-Roman d = null;
-Console.WriteLine(c == d);  // true
-Console.WriteLine(c >= d);  // true
-Console.WriteLine(c <= d);  // true
+var fromInt    = new Roman(1984);        // MCMLXXXIV
+var fromString = new Roman("MMXXIII");   // 2023
+var lower      = new Roman("  xlii  ");  // 42 (trimmed, case-insensitive)
+var copy       = new Roman(fromInt);     // copy constructor
 ```
 
-## ⚠️ Ограничения
-
-### Диапазон значений
-
-Римские числа поддерживают только значения от **1 до 3999**.
+### Conversions
 
 ```csharp
-new Roman(0);     // ArgumentOutOfRangeException
-new Roman(-5);    // ArgumentOutOfRangeException
-new Roman(4000);  // ArgumentOutOfRangeException
+// Parse — throws on invalid input
+var r1 = Roman.Parse(500);
+var r2 = Roman.Parse("D");
+
+// TryParse — never throws
+if (Roman.TryParse(42, out var r3)) { /* ... */ }
+if (Roman.TryParse("invalid", out var r4)) { /* not reached */ }
+
+// Implicit Roman -> int
+int value = new Roman(42);     // 42
+
+// Explicit int -> Roman (can throw)
+var r5 = (Roman)99;            // XCIX
 ```
 
-### Переполнение при операциях
+### Arithmetic
+
+Operations compute on the underlying integer and re-validate the result against the 1–3999
+range, throwing `ArgumentOutOfRangeException` on overflow/underflow. Division is integer
+division.
 
 ```csharp
-var a = new Roman(3999);
-var b = new Roman(1);
-var sum = a + b;  // ArgumentOutOfRangeException
+new Roman(10) + new Roman(5);   // XV  (15)
+new Roman(50) - new Roman(20);  // XXX (30)
+new Roman(7)  * new Roman(8);   // LVI (56)
+new Roman(20) / new Roman(4);   // V   (5)
+new Roman(10) / new Roman(3);   // III (3, integer division)
 
-var c = new Roman(2000);
-var d = new Roman(3);
-var product = c * d;  // ArgumentOutOfRangeException (6000 > 3999)
+new Roman(3999) + new Roman(1); // throws: result > 3999
+new Roman(5)    - new Roman(5); // throws: result < 1
 ```
 
-### Результат должен быть положительным
+### Comparison
 
 ```csharp
-var a = new Roman(5);
-var b = new Roman(5);
-var result = a - b;  // ArgumentOutOfRangeException (результат = 0)
+var a = new Roman(50);
+var b = new Roman(30);
 
-var c = new Roman(1);
-var d = new Roman(2);
-var quotient = c / d;  // ArgumentOutOfRangeException (результат = 0)
+a > b;            // true
+a == b;           // false
+a.CompareTo(b);   // > 0
+a.Equals(b);      // false
 ```
 
-### Парсинг
-
-По умолчанию парсер **лоялен** — принимает неканонические записи (например, "IIII" вместо "IV"). Это поведение конструкторов, `Parse(string)` и `TryParse(string, …)`:
+`null` semantics mirror `Comparer<T>` (null sorts lowest):
 
 ```csharp
-var roman = new Roman("IIII");  // Парсится как 4
-Console.WriteLine(roman);  // Выведет: IV (каноническая форма)
+Roman x = new Roman(5);
+Roman y = null;
+
+x > y;    // true   (a value is greater than null)
+y < x;    // true   (null is less than any value)
+x == y;   // false
+x != y;   // true
+
+Roman p = null, q = null;
+p == q;   // true
+p >= q;   // true
 ```
 
-Если нужна **строгая** валидация (только каноническая запись), передайте `RomanStyle.Strict` в перегрузки `Parse` / `TryParse` (по аналогии с `int.Parse(string, NumberStyles)`):
+### Parsing modes (lenient / strict)
+
+By default parsing is **lenient** — it accepts non-canonical forms such as `"IIII"` for `4`.
+This applies to the constructors, `Parse(string)` and `TryParse(string, …)`:
 
 ```csharp
-Roman.Parse("IV", RomanStyle.Strict);    // OK → 4
-Roman.Parse("IIII", RomanStyle.Strict);  // FormatException: не каноническая запись
+var roman = new Roman("IIII");  // parses as 4
+Console.WriteLine(roman);       // IV (output is always canonical)
+```
 
-// Безопасный вариант без исключений
+For **strict** validation (canonical form only), pass `RomanStyle.Strict` to the `Parse` /
+`TryParse` overloads — modeled after `int.Parse(string, NumberStyles)`:
+
+```csharp
+Roman.Parse("IV", RomanStyle.Strict);    // OK -> 4
+Roman.Parse("IIII", RomanStyle.Strict);  // FormatException: not canonical
+
 if (Roman.TryParse("IIII", RomanStyle.Strict, out var r))
     Console.WriteLine(r);
 else
-    Console.WriteLine("Неканоническая запись!");
+    Console.WriteLine("Non-canonical form!");
 ```
 
-`RomanStyle.Lenient` (значение по умолчанию для перегрузок) повторяет лояльное поведение. Строгий режим по-прежнему отвергает мусорные символы (`ArgumentException`) и значения вне диапазона 1–3999 (`ArgumentOutOfRangeException`); неканоническая, но в остальном валидная запись даёт `FormatException`.
+`RomanStyle.Lenient` (the default for the overloads) reproduces the lenient behavior. Strict
+mode still rejects garbage characters (`ArgumentException`) and out-of-range values
+(`ArgumentOutOfRangeException`); an otherwise valid but non-canonical form yields
+`FormatException`.
 
-## 📚 API Reference
+## Limitations
 
-### Конструкторы
+- **Range is 1–3999** (`MMMCMXCIX`). Values outside this range throw
+  `ArgumentOutOfRangeException`. There is no representation for `0` or negatives.
+- **Round-trip is value-preserving, not string-preserving.** `new Roman("IIII").ToString()`
+  returns `"IV"`. Use `RomanStyle.Strict` if you need to reject non-canonical input.
+- Arithmetic results must stay within 1–3999, otherwise they throw.
 
-| Конструктор | Описание |
-|------------|----------|
-| `Roman(int value)` | Создаёт римское число из целого числа (1-3999) |
-| `Roman(string roman)` | Создаёт римское число из строки |
-| `Roman(Roman other)` | Создаёт копию римского числа |
+## API reference
 
-### Статические методы
+### Constructors
 
-| Метод | Описание |
-|-------|----------|
-| `Parse(int value)` | Парсит int в Roman, бросает исключение при ошибке |
-| `Parse(string roman)` | Парсит string в Roman (лояльно), бросает исключение при ошибке |
-| `Parse(string roman, RomanStyle style)` | Парсит string с выбором режима; `Strict` бросает `FormatException` на неканонической записи |
-| `TryParse(int value, out Roman? result)` | Безопасный парсинг int |
-| `TryParse(string roman, out Roman? result)` | Безопасный парсинг string (лояльно) |
-| `TryParse(string roman, RomanStyle style, out Roman? result)` | Безопасный парсинг string с выбором режима |
+| Constructor | Description |
+|-------------|-------------|
+| `Roman(int value)` | Creates a value from an integer (1–3999) |
+| `Roman(string roman)` | Creates a value from a string (lenient) |
+| `Roman(Roman other)` | Copy constructor |
 
-### Перечисления
+### Static methods
 
-| `RomanStyle` | Описание |
-|--------------|----------|
-| `Lenient` | Лояльный разбор (по умолчанию): принимает неканонические формы |
-| `Strict` | Строгий разбор: только каноническая запись |
+| Method | Description |
+|--------|-------------|
+| `Parse(int value)` | Parses an `int`; throws on error |
+| `Parse(string roman)` | Parses a string (lenient); throws on error |
+| `Parse(string roman, RomanStyle style)` | Parses with a mode; `Strict` throws `FormatException` on non-canonical input |
+| `TryParse(int value, out Roman? result)` | Exception-free `int` parsing |
+| `TryParse(string roman, out Roman? result)` | Exception-free string parsing (lenient) |
+| `TryParse(string roman, RomanStyle style, out Roman? result)` | Exception-free string parsing with a mode |
 
-### Методы экземпляра
+### Enums
 
-| Метод | Описание |
-|-------|----------|
-| `ToInt()` | Возвращает значение в а��абской системе счисления |
-| `ToString()` | Возвращает строковое представление римского числа |
-| `CompareTo(Roman? other)` | Сравнивает с другим римским числом |
-| `Equals(Roman? other)` | Проверяет равенство с другим римским числом |
-| `GetHashCode()` | Возвращает хэш-код |
+| `RomanStyle` | Description |
+|--------------|-------------|
+| `Lenient` | Lenient parsing (default): accepts non-canonical forms |
+| `Strict` | Strict parsing: canonical form only |
 
-### Операторы
+### Instance methods
 
-| Оператор | Описание |
-|----------|----------|
-| `+` | Сложение |
-| `-` | Вычитание |
-| `*` | Умножение |
-| `/` | Целочисленное деление |
-| `>` | Больше |
-| `<` | Меньше |
-| `>=` | Больше или равно |
-| `<=` | Меньше или равно |
-| `==` | Равно |
-| `!=` | Не равно |
-| `(int)roman` | Неявное преобразование Roman → int |
-| `(Roman)value` | Явное преобразование int → Roman |
+| Method | Description |
+|--------|-------------|
+| `ToInt()` | Returns the Arabic value |
+| `ToString()` | Returns the canonical Roman string |
+| `CompareTo(Roman? other)` | Compares with another value |
+| `Equals(Roman? other)` | Value equality |
+| `GetHashCode()` | Hash code |
 
-## 💡 Примеры
+### Operators
 
-### Работа с датами
+| Operator | Description |
+|----------|-------------|
+| `+ - * /` | Arithmetic (integer division) |
+| `> < >= <=` | Comparison (null sorts lowest) |
+| `== !=` | Equality |
+| `(int)roman` | Implicit conversion `Roman -> int` |
+| `(Roman)value` | Explicit conversion `int -> Roman` |
 
-```csharp
-var year = new Roman(2023);
-Console.WriteLine($"Год в римских числах: {year}");  // MMXXIII
+## Performance
 
-// Разница между годами
-var year1 = new Roman(2023);
-var year2 = new Roman(1984);
-var difference = year1 - year2;
-Console.WriteLine($"Разница: {difference} ({difference.ToInt()} лет)");  // XXXIX (39 лет)
-```
+The conversion path is allocation-light:
 
-### Калькулятор римских чисел
+- The `int -> Roman` conversion writes into a `stackalloc Span<char>` buffer — no heap
+  allocation beyond the resulting string.
+- The type is immutable and wraps a single `int`, so instances are cheap to copy and compare.
 
-```csharp
-string Calculate(string a, string op, string b)
-{
-    if (!Roman.TryParse(a, out var roman1) || !Roman.TryParse(b, out var roman2))
-        return "Ошибка парсинга";
+## Testing
 
-    try
-    {
-        var result = op switch
-        {
-            "+" => roman1 + roman2,
-            "-" => roman1 - roman2,
-            "*" => roman1 * roman2,
-            "/" => roman1 / roman2,
-            _ => throw new ArgumentException("Неизвестная операция")
-        };
-        return result.ToString();
-    }
-    catch (ArgumentOutOfRangeException)
-    {
-        return "Результат вне диапазона [1, 3999]";
-    }
-}
-
-Console.WriteLine(Calculate("X", "+", "V"));   // XV
-Console.WriteLine(Calculate("XX", "-", "V"));  // XV
-Console.WriteLine(Calculate("V", "*", "IV"));  // XX
-Console.WriteLine(Calculate("C", "/", "V"));   // XX
-```
-
-### Сортировка
-
-```csharp
-var numbers = new List<Roman>
-{
-    new Roman(100),
-    new Roman(5),
-    new Roman(50),
-    new Roman(1),
-    new Roman(500)
-};
-
-numbers.Sort();
-
-foreach (var num in numbers)
-{
-    Console.WriteLine($"{num} ({num.ToInt()})");
-}
-// Вывод:
-// I (1)
-// V (5)
-// L (50)
-// C (100)
-// D (500)
-```
-
-### Таблица умножения
-
-```csharp
-for (int i = 1; i <= 10; i++)
-{
-    var roman = new Roman(i);
-    for (int j = 1; j <= 10; j++)
-    {
-        var multiplier = new Roman(j);
-        var product = roman * multiplier;
-        Console.Write($"{product,-6}");
-    }
-    Console.WriteLine();
-}
-```
-
-### Валидация пользовательского ввода
-
-```csharp
-void ProcessUserInput(string input)
-{
-    if (Roman.TryParse(input, out var roman))
-    {
-        Console.WriteLine($"Вы ввели: {roman} ({roman.ToInt()})");
-        
-        // Проверка канонической формы
-        if (roman.ToString() != input.Trim().ToUpperInvariant())
-        {
-            Console.WriteLine($"Рекомендуемая форма: {roman}");
-        }
-    }
-    else
-    {
-        Console.WriteLine("Некорректный ввод. Используйте римские цифры (I, V, X, L, C, D, M)");
-    }
-}
-
-ProcessUserInput("xlii");   // Вы ввели: XLII (42)
-ProcessUserInput("IIII");   // Вы ввели: IV (4), Рекомендуемая форма: IV
-ProcessUserInput("abc");    // Некорректный ввод
-```
-
-## 🧪 Тестирование
-
-Проект имеет **100% покрытие** unit-тестами с использованием MSTest.
-
-### Запуск тестов
+The library ships with a comprehensive MSTest suite covering constructors, arithmetic,
+comparison, parsing (both modes), conversions, and int → Roman → string round-trips.
 
 ```bash
-dotnet test
+dotnet test                                   # run all tests
+dotnet test --collect:"XPlat Code Coverage"   # with coverage
 ```
 
-### Запуск с покрытием
+## Contributing
 
-```bash
-dotnet test --collect:"XPlat Code Coverage"
-```
+Issues and pull requests are welcome. When filing a bug, please include the library version,
+the .NET version, a minimal reproduction, and the expected vs. actual behavior.
 
-### Структура тестов
+## License
 
-- ✅ Конструкторы (граничные значения, валидация)
-- ✅ Арифметические операции (все операторы + переполнение)
-- ✅ Операторы сравнения (включая null)
-- ✅ Методы Equals/GetHashCode/CompareTo
-- ✅ Парсинг (Parse, TryParse)
-- ✅ Конвертация (ToString, ToInt, операторы преобразования)
-- ✅ Round-trip тесты (int → Roman → string → Roman → int)
+Licensed under the [MIT License](https://github.com/deliciousNesquik/roman/blob/main/LICENSE).
 
-### Статистика покрытия
+## Author
 
-| Категория | Покрытие |
-|-----------|----------|
-| Строки кода | 100% |
-| Ветки | 100% |
-| Методы | 100% |
-
-## ⚡ Производительность
-
-Библиотека оптимизирована для производительности:
-
-- **Stack allocation** для конвертации (использование `Span<char>`)
-- Отсутствие динамических аллокаций для чисел < 16 символов
-- Минимальное количество строковых операций
-- Кэширование не используется (immutable структура)
-
-### Бенчмарки
-
-```
-BenchmarkDotNet=v0.13.0, OS=Windows 11
-Intel Core i7-9750H CPU 2.60GHz, 1 CPU, 12 logical and 6 physical cores
-
-|        Method |      Mean |    Error |   StdDev |
-|-------------- |----------:|---------:|---------:|
-|   Ctor_Int    |  12.45 ns | 0.145 ns | 0.136 ns |
-|   Ctor_String |  45.32 ns | 0.521 ns | 0.487 ns |
-|   ToString    |  38.67 ns | 0.412 ns | 0.385 ns |
-|   Addition    |  25.89 ns | 0.298 ns | 0.279 ns |
-```
-
-### Баг-репорты
-
-При создании issue укажите:
-
-- Версию библиотеки
-- Версию .NET
-- Операционную систему
-- Минимальный воспроизводимый пример
-- Ожидаемое поведение
-- Фактическое поведение
-
-## 👥 Авторы
-
-- **[deliciousNesquik]** - *Initial work* - [@deliciousNesquik](https://github.com/deliciousNesquik)
-
-## 🙏 Благодарности
-
-- Вдохновлено древнеримской системой счисления
-- Благодарность сообществу .NET за отличные инструменты
-
-## 📞 Контакты
-
-- **Email**: byte.in4matic@gmail.com
-- **Telegram**: [@deliciousNesquik](https://t.me/deliciousNesquik)
-
-
----
-
-<p align="center">
-  Сделано с ❤️ для .NET сообщества
-</p>
+**deliciousNesquik** — [@deliciousNesquik](https://github.com/deliciousNesquik)

@@ -1,0 +1,278 @@
+# Roman
+
+[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/)
+[![C#](https://img.shields.io/badge/C%23-13.0-239120)](https://docs.microsoft.com/en-us/dotnet/csharp/)
+[![NuGet](https://img.shields.io/nuget/v/Roman.svg)](https://www.nuget.org/packages/Roman/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/deliciousNesquik/roman/blob/main/LICENSE)
+
+Небольшая C#-библиотека без зависимостей для работы с римскими числами: преобразование
+в/из арабских чисел, арифметика и сравнение. Иммутабельная, с минимумом аллокаций и полным
+покрытием тестами.
+
+**🌐 Язык:** [English](https://github.com/deliciousNesquik/roman/blob/main/README.md) · **Русский**
+
+## Содержание
+
+- [Возможности](#возможности)
+- [Установка](#установка)
+- [Быстрый старт](#быстрый-старт)
+- [Использование](#использование)
+  - [Создание значений](#создание-значений)
+  - [Преобразования](#преобразования)
+  - [Арифметика](#арифметика)
+  - [Сравнение](#сравнение)
+  - [Режимы парсинга (лояльный / строгий)](#режимы-парсинга-лояльный--строгий)
+- [Ограничения](#ограничения)
+- [Справочник API](#справочник-api)
+- [Производительность](#производительность)
+- [Тестирование](#тестирование)
+- [Участие в разработке](#участие-в-разработке)
+- [Лицензия](#лицензия)
+
+## Возможности
+
+- Преобразование арабских чисел (1–3999) в римские и обратно
+- Арифметика: сложение, вычитание, умножение, деление
+- Операторы сравнения: `>`, `<`, `>=`, `<=`, `==`, `!=`
+- Реализация `IComparable<Roman>` и `IEquatable<Roman>`
+- Иммутабельный тип — каждая операция возвращает новое значение
+- Чёткая семантика `null` в операторах сравнения
+- Регистронезависимый парсинг с обрезкой пробелов
+- Лояльный (по умолчанию) и строгий (`RomanStyle.Strict`) режимы парсинга
+- `TryParse` для разбора без исключений
+- Преобразование с минимумом аллокаций через `stackalloc Span<char>`
+- Без внешних зависимостей
+
+## Установка
+
+```bash
+# .NET CLI
+dotnet add package Roman
+```
+
+```powershell
+# Package Manager
+Install-Package Roman
+```
+
+```xml
+<!-- PackageReference -->
+<PackageReference Include="Roman" Version="1.1.1" />
+```
+
+## Быстрый старт
+
+```csharp
+using RomanNumerals;
+
+// Из целого числа
+var a = new Roman(42);
+Console.WriteLine(a);            // XLII
+
+// Из строки
+var b = new Roman("XIX");
+Console.WriteLine(b.ToInt());    // 19
+
+// Арифметика
+Console.WriteLine(a + b);        // LXI  (61)
+
+// Сравнение
+if (a > b)
+    Console.WriteLine("42 > 19");
+
+// Парсинг без исключений
+if (Roman.TryParse("MCMXCIV", out var year))
+    Console.WriteLine(year.ToInt());   // 1994
+```
+
+> **Важно:** тип называется `Roman`, namespace — `RomanNumerals`. Добавьте `using RomanNumerals;`
+> и используйте `new Roman(...)`.
+
+## Использование
+
+### Создание значений
+
+```csharp
+var fromInt    = new Roman(1984);        // MCMLXXXIV
+var fromString = new Roman("MMXXIII");   // 2023
+var lower      = new Roman("  xlii  ");  // 42 (обрезка пробелов, регистронезависимо)
+var copy       = new Roman(fromInt);     // конструктор копирования
+```
+
+### Преобразования
+
+```csharp
+// Parse — бросает исключение при ошибке
+var r1 = Roman.Parse(500);
+var r2 = Roman.Parse("D");
+
+// TryParse — никогда не бросает
+if (Roman.TryParse(42, out var r3)) { /* ... */ }
+if (Roman.TryParse("invalid", out var r4)) { /* не выполнится */ }
+
+// Неявное Roman -> int
+int value = new Roman(42);     // 42
+
+// Явное int -> Roman (может бросить)
+var r5 = (Roman)99;            // XCIX
+```
+
+### Арифметика
+
+Операции считаются на нижележащем целом и затем повторно проверяют результат на диапазон
+1–3999, бросая `ArgumentOutOfRangeException` при переполнении/недополнении. Деление —
+целочисленное.
+
+```csharp
+new Roman(10) + new Roman(5);   // XV  (15)
+new Roman(50) - new Roman(20);  // XXX (30)
+new Roman(7)  * new Roman(8);   // LVI (56)
+new Roman(20) / new Roman(4);   // V   (5)
+new Roman(10) / new Roman(3);   // III (3, целочисленное деление)
+
+new Roman(3999) + new Roman(1); // исключение: результат > 3999
+new Roman(5)    - new Roman(5); // исключение: результат < 1
+```
+
+### Сравнение
+
+```csharp
+var a = new Roman(50);
+var b = new Roman(30);
+
+a > b;            // true
+a == b;           // false
+a.CompareTo(b);   // > 0
+a.Equals(b);      // false
+```
+
+Семантика `null` повторяет `Comparer<T>` (null — наименьший):
+
+```csharp
+Roman x = new Roman(5);
+Roman y = null;
+
+x > y;    // true   (значение больше null)
+y < x;    // true   (null меньше любого значения)
+x == y;   // false
+x != y;   // true
+
+Roman p = null, q = null;
+p == q;   // true
+p >= q;   // true
+```
+
+### Режимы парсинга (лояльный / строгий)
+
+По умолчанию парсинг **лоялен** — принимает неканонические формы, например `"IIII"` = `4`.
+Это относится к конструкторам, `Parse(string)` и `TryParse(string, …)`:
+
+```csharp
+var roman = new Roman("IIII");  // разбирается как 4
+Console.WriteLine(roman);       // IV (вывод всегда канонический)
+```
+
+Если нужна **строгая** валидация (только каноническая запись), передайте `RomanStyle.Strict`
+в перегрузки `Parse` / `TryParse` (по аналогии с `int.Parse(string, NumberStyles)`):
+
+```csharp
+Roman.Parse("IV", RomanStyle.Strict);    // OK -> 4
+Roman.Parse("IIII", RomanStyle.Strict);  // FormatException: не каноническая запись
+
+if (Roman.TryParse("IIII", RomanStyle.Strict, out var r))
+    Console.WriteLine(r);
+else
+    Console.WriteLine("Неканоническая запись!");
+```
+
+`RomanStyle.Lenient` (значение по умолчанию для перегрузок) повторяет лояльное поведение.
+Строгий режим по-прежнему отвергает мусорные символы (`ArgumentException`) и значения вне
+диапазона (`ArgumentOutOfRangeException`); валидная, но неканоническая запись даёт
+`FormatException`.
+
+## Ограничения
+
+- **Диапазон 1–3999** (`MMMCMXCIX`). Значения вне диапазона бросают
+  `ArgumentOutOfRangeException`. Нет представления для `0` и отрицательных чисел.
+- **Round-trip сохраняет значение, а не строку.** `new Roman("IIII").ToString()` вернёт
+  `"IV"`. Используйте `RomanStyle.Strict`, если нужно отвергать неканонический ввод.
+- Результаты арифметики должны оставаться в 1–3999, иначе бросается исключение.
+
+## Справочник API
+
+### Конструкторы
+
+| Конструктор | Описание |
+|-------------|----------|
+| `Roman(int value)` | Создаёт значение из целого числа (1–3999) |
+| `Roman(string roman)` | Создаёт значение из строки (лояльно) |
+| `Roman(Roman other)` | Конструктор копирования |
+
+### Статические методы
+
+| Метод | Описание |
+|-------|----------|
+| `Parse(int value)` | Разбирает `int`; бросает при ошибке |
+| `Parse(string roman)` | Разбирает строку (лояльно); бросает при ошибке |
+| `Parse(string roman, RomanStyle style)` | Разбор с режимом; `Strict` бросает `FormatException` на неканонической записи |
+| `TryParse(int value, out Roman? result)` | Разбор `int` без исключений |
+| `TryParse(string roman, out Roman? result)` | Разбор строки без исключений (лояльно) |
+| `TryParse(string roman, RomanStyle style, out Roman? result)` | Разбор строки без исключений с режимом |
+
+### Перечисления
+
+| `RomanStyle` | Описание |
+|--------------|----------|
+| `Lenient` | Лояльный разбор (по умолчанию): принимает неканонические формы |
+| `Strict` | Строгий разбор: только каноническая запись |
+
+### Методы экземпляра
+
+| Метод | Описание |
+|-------|----------|
+| `ToInt()` | Возвращает арабское значение |
+| `ToString()` | Возвращает каноническую римскую строку |
+| `CompareTo(Roman? other)` | Сравнение с другим значением |
+| `Equals(Roman? other)` | Равенство по значению |
+| `GetHashCode()` | Хеш-код |
+
+### Операторы
+
+| Оператор | Описание |
+|----------|----------|
+| `+ - * /` | Арифметика (целочисленное деление) |
+| `> < >= <=` | Сравнение (null — наименьший) |
+| `== !=` | Равенство |
+| `(int)roman` | Неявное преобразование `Roman -> int` |
+| `(Roman)value` | Явное преобразование `int -> Roman` |
+
+## Производительность
+
+Путь преобразования экономен на аллокациях:
+
+- Преобразование `int -> Roman` пишет в буфер `stackalloc Span<char>` — нет аллокаций в куче,
+  кроме итоговой строки.
+- Тип иммутабелен и оборачивает один `int`, поэтому экземпляры дёшево копировать и сравнивать.
+
+## Тестирование
+
+Библиотека поставляется с обширным набором тестов на MSTest: конструкторы, арифметика,
+сравнение, парсинг (оба режима), преобразования и round-trip int → Roman → string.
+
+```bash
+dotnet test                                   # все тесты
+dotnet test --collect:"XPlat Code Coverage"   # с покрытием
+```
+
+## Участие в разработке
+
+Issues и pull request'ы приветствуются. При баг-репорте укажите версию библиотеки, версию
+.NET, минимальный воспроизводимый пример, ожидаемое и фактическое поведение.
+
+## Лицензия
+
+Распространяется под лицензией [MIT](https://github.com/deliciousNesquik/roman/blob/main/LICENSE).
+
+## Автор
+
+**deliciousNesquik** — [@deliciousNesquik](https://github.com/deliciousNesquik)

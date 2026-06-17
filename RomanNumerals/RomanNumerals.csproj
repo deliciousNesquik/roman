@@ -7,14 +7,21 @@
         
         <RootNamespace>RomanNumerals</RootNamespace>
         <PackageId>Roman</PackageId>
-        <PackageVersion>1.1.0</PackageVersion>
+        <PackageVersion>1.1.1</PackageVersion>
         <Authors>deliciousNesquik</Authors>
-        <Description>Roman numerals converter/library.</Description>
-        <PackageTags>roman;numerals</PackageTags>
+        <Description>A small, dependency-free C# library for Roman numerals: conversion to/from Arabic integers (1–3999), arithmetic, comparison, and lenient/strict parsing. Immutable and allocation-light.</Description>
+        <PackageTags>roman;numerals;roman-numerals;converter</PackageTags>
         <RepositoryUrl>https://github.com/deliciousNesquik/roman</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageProjectUrl>https://github.com/deliciousNesquik/roman</PackageProjectUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     </PropertyGroup>
-    
+
+    <ItemGroup>
+        <None Include="..\README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
 </Project>
