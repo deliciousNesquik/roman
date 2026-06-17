@@ -163,11 +163,12 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
             return false;
         }
     }
-
-    public static implicit operator int(Roman r)
-    {
-        return r._value;
-    }
+    
+    public static implicit operator int(Roman r)                                                                                                                                         
+    {                                                                                                                                                                                    
+        ArgumentNullException.ThrowIfNull(r);                                                                                                                                            
+        return r._value;                                                                                                                                                                 
+    }  
 
     public static explicit operator Roman(int value)
     {
