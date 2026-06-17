@@ -184,13 +184,9 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
             result = new Roman(roman);
             return true;
         }
-        catch (ArgumentOutOfRangeException)
-        {
-            result = null;
-            return false;
-        }
         catch (ArgumentException)
         {
+            // ArgumentOutOfRangeException наследует ArgumentException — один блок ловит оба.
             result = null;
             return false;
         }
