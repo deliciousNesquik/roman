@@ -5,13 +5,24 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
     /// <summary>Значение числа в арабской системе счисления.</summary>
     private readonly int _value;
 
-    /// <summary>Таблица для преобразования чисел в римские символы.</summary>
+    /// <summary>
+    ///     Таблица (значение, символ) по убыванию — единственный источник истины
+    ///     для обоих направлений преобразования.
+    /// </summary>
     private static readonly (int Value, string Symbol)[] Map =
     [
         (1000, "M"), (900, "CM"), (500, "D"), (400, "CD"),
         (100, "C"), (90, "XC"), (50, "L"), (40, "XL"),
         (10, "X"), (9, "IX"), (5, "V"), (4, "IV"), (1, "I")
     ];
+
+    /// <summary>
+    ///     Значения одиночных символов, выведенные из <see cref="Map"/>, чтобы не
+    ///     дублировать числа в парсере. Заполняется один раз при инициализации типа.
+    /// </summary>
+    private static readonly Dictionary<char, int> CharValues =
+        Map.Where(entry => entry.Symbol.Length == 1)
+            .ToDictionary(entry => entry.Symbol[0], entry => entry.Value);
 
     #region Конструкторы
 
@@ -191,17 +202,9 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 
     private static int GetValue(char c)
     {
-        return c switch
-        {
-            'I' => 1,
-            'V' => 5,
-            'X' => 10,
-            'L' => 50,
-            'C' => 100,
-            'D' => 500,
-            'M' => 1000,
-            _ => throw new ArgumentException($"Invalid Roman numeral character: '{c}'.")
-        };
+        return CharValues.TryGetValue(c, out var value)
+            ? value
+            : throw new ArgumentException($"Invalid Roman numeral character: '{c}'.");
     }
 
     private static int ToInt(string roman)
