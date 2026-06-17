@@ -25,7 +25,7 @@ jobs:
         run: dotnet build -c Release --no-restore
 
       - name: Test
-        run: dotnet test Roman.Tests/Roman.Tests.csproj -c Release --no-build
+        run: dotnet test RomanNumerals.Tests/RomanNumerals.Tests.csproj -c Release --no-build
 
       - name: Version from tag (vX.Y.Z)
         if: startsWith(github.ref, 'refs/tags/v')
@@ -35,7 +35,7 @@ jobs:
         shell: bash
         run: |
           args=(
-            Roman/Roman.csproj
+            RomanNumerals/RomanNumerals.csproj
             -c Release
             --no-build
             -o ./artifacts
