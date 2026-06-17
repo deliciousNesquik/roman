@@ -741,6 +741,84 @@ public class RomanTest
 
     #endregion
 
+    #region Tests RomanStyle (Lenient / Strict)
+
+    [TestMethod]
+    [DataRow("IV", 4)]
+    [DataRow("MCMLXXXIV", 1984)]
+    [DataRow("  xlii  ", 42)]
+    [DataRow("MMMCMXCIX", 3999)]
+    public void Parse_Strict_CanonicalForm_ReturnsRoman(string roman, int expected)
+    {
+        var result = Roman.Parse(roman, RomanStyle.Strict);
+
+        Assert.AreEqual(expected, result.ToInt());
+    }
+
+    [TestMethod]
+    [DataRow("IIII")]
+    [DataRow("VX")]
+    [DataRow("IM")]
+    [DataRow("XXXX")]
+    public void Parse_Strict_NonCanonicalForm_ThrowsFormatException(string roman)
+    {
+        var ex = Assert.ThrowsExactly<FormatException>(() => Roman.Parse(roman, RomanStyle.Strict));
+        StringAssert.Contains(ex.Message, "canonical");
+    }
+
+    [TestMethod]
+    [DataRow("IIII", 4)]
+    [DataRow("VX", 5)]
+    public void Parse_Lenient_NonCanonicalForm_ParsesLikeDefault(string roman, int expected)
+    {
+        // Явный Lenient ведёт себя как старый Parse(string).
+        var explicitLenient = Roman.Parse(roman, RomanStyle.Lenient);
+        var legacy = Roman.Parse(roman);
+
+        Assert.AreEqual(expected, explicitLenient.ToInt());
+        Assert.AreEqual(legacy.ToInt(), explicitLenient.ToInt());
+    }
+
+    [TestMethod]
+    public void Parse_Strict_InvalidInput_ThrowsSameAsLenient()
+    {
+        // Строгий режим не «глотает» базовые ошибки разбора.
+        Assert.ThrowsExactly<ArgumentException>(() => Roman.Parse("ABC", RomanStyle.Strict));
+        Assert.ThrowsExactly<ArgumentException>(() => Roman.Parse("", RomanStyle.Strict));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => Roman.Parse("MMMM", RomanStyle.Strict));
+    }
+
+    [TestMethod]
+    public void TryParse_Strict_CanonicalForm_ReturnsTrue()
+    {
+        var success = Roman.TryParse("IV", RomanStyle.Strict, out var result);
+
+        Assert.IsTrue(success);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(4, result.ToInt());
+    }
+
+    [TestMethod]
+    public void TryParse_Strict_NonCanonicalForm_ReturnsFalse()
+    {
+        var success = Roman.TryParse("IIII", RomanStyle.Strict, out var result);
+
+        Assert.IsFalse(success);
+        Assert.IsNull(result);
+    }
+
+    [TestMethod]
+    public void TryParse_Lenient_NonCanonicalForm_ReturnsTrue()
+    {
+        var success = Roman.TryParse("IIII", RomanStyle.Lenient, out var result);
+
+        Assert.IsTrue(success);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(4, result.ToInt());
+    }
+
+    #endregion
+
     #region Tests Conversions
 
     [TestMethod]

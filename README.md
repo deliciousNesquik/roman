@@ -36,6 +36,7 @@
 - ✅ Неизменяемый (immutable) тип
 - ✅ Поддержка `null`-значений в операторах сравнения
 - ✅ Парсинг строк в нижнем и верхнем регистре
+- ✅ Лояльный и строгий (`RomanStyle.Strict`) режимы парсинга
 - ✅ Метод `TryParse` для безопасного парсинга
 - ✅ Оптимизированное преобразование с использованием `Span<char>`
 - ✅ 100% покрытие unit-тестами
@@ -57,7 +58,7 @@ Install-Package Roman
 ### Через PackageReference
 
 ```xml
-<PackageReference Include="Roman" Version="1.0.0" />
+<PackageReference Include="Roman" Version="1.1.0" />
 ```
 
 ### Ручная установка
@@ -346,20 +347,27 @@ var quotient = c / d;  // ArgumentOutOfRangeException (результат = 0)
 
 ### Парсинг
 
-Парсер принимает **неканонические** записи (например, "IIII" вместо "IV"). Если требуется строгая валидация, используйте дополнительную проверку после парсинга:
+По умолчанию парсер **лоялен** — принимает неканонические записи (например, "IIII" вместо "IV"). Это поведение конструкторов, `Parse(string)` и `TryParse(string, …)`:
 
 ```csharp
 var roman = new Roman("IIII");  // Парсится как 4
 Console.WriteLine(roman);  // Выведет: IV (каноническая форма)
-
-// Проверка канонической формы
-var input = "IIII";
-var parsed = new Roman(input);
-if (parsed.ToString() != input.ToUpperInvariant())
-{
-    Console.WriteLine("Неканоническая запись!");
-}
 ```
+
+Если нужна **строгая** валидация (только каноническая запись), передайте `RomanStyle.Strict` в перегрузки `Parse` / `TryParse` (по аналогии с `int.Parse(string, NumberStyles)`):
+
+```csharp
+Roman.Parse("IV", RomanStyle.Strict);    // OK → 4
+Roman.Parse("IIII", RomanStyle.Strict);  // FormatException: не каноническая запись
+
+// Безопасный вариант без исключений
+if (Roman.TryParse("IIII", RomanStyle.Strict, out var r))
+    Console.WriteLine(r);
+else
+    Console.WriteLine("Неканоническая запись!");
+```
+
+`RomanStyle.Lenient` (значение по умолчанию для перегрузок) повторяет лояльное поведение. Строгий режим по-прежнему отвергает мусорные символы (`ArgumentException`) и значения вне диапазона 1–3999 (`ArgumentOutOfRangeException`); неканоническая, но в остальном валидная запись даёт `FormatException`.
 
 ## 📚 API Reference
 
@@ -376,9 +384,18 @@ if (parsed.ToString() != input.ToUpperInvariant())
 | Метод | Описание |
 |-------|----------|
 | `Parse(int value)` | Парсит int в Roman, бросает исключение при ошибке |
-| `Parse(string roman)` | Парсит string в Roman, бросает исключение при ошибке |
+| `Parse(string roman)` | Парсит string в Roman (лояльно), бросает исключение при ошибке |
+| `Parse(string roman, RomanStyle style)` | Парсит string с выбором режима; `Strict` бросает `FormatException` на неканонической записи |
 | `TryParse(int value, out Roman? result)` | Безопасный парсинг int |
-| `TryParse(string roman, out Roman? result)` | Безопасный парсинг string |
+| `TryParse(string roman, out Roman? result)` | Безопасный парсинг string (лояльно) |
+| `TryParse(string roman, RomanStyle style, out Roman? result)` | Безопасный парсинг string с выбором режима |
+
+### Перечисления
+
+| `RomanStyle` | Описание |
+|--------------|----------|
+| `Lenient` | Лояльный разбор (по умолчанию): принимает неканонические формы |
+| `Strict` | Строгий разбор: только каноническая запись |
 
 ### Методы экземпляра
 

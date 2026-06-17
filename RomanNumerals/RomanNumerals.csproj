@@ -7,7 +7,7 @@
         
         <RootNamespace>RomanNumerals</RootNamespace>
         <PackageId>Roman</PackageId>
-        <PackageVersion>1.0.0</PackageVersion>
+        <PackageVersion>1.1.0</PackageVersion>
         <Authors>deliciousNesquik</Authors>
         <Description>Roman numerals converter/library.</Description>
         <PackageTags>roman;numerals</PackageTags>

@@ -142,6 +142,27 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
         return new Roman(roman);
     }
 
+    /// <summary>Разбирает строку с указанным режимом (см. <see cref="RomanStyle"/>).</summary>
+    /// <exception cref="ArgumentException">Строка пуста или содержит недопустимые символы.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Значение выходит за диапазон 1–3999.</exception>
+    /// <exception cref="FormatException">
+    ///     В режиме <see cref="RomanStyle.Strict"/> запись неканонична.
+    /// </exception>
+    public static Roman Parse(string roman, RomanStyle style)
+    {
+        var result = new Roman(roman);
+
+        if (style == RomanStyle.Strict)
+        {
+            var normalized = roman.Trim().ToUpperInvariant();
+            if (result.ToString() != normalized)
+                throw new FormatException(
+                    $"'{roman}' is not a canonical Roman numeral; the canonical form is '{result}'.");
+        }
+
+        return result;
+    }
+
     public static bool TryParse(int value, out Roman? result)
     {
         try
@@ -174,7 +195,27 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
             return false;
         }
     }
-    
+
+    /// <summary>Безопасный разбор строки с указанным режимом (см. <see cref="RomanStyle"/>).</summary>
+    public static bool TryParse(string roman, RomanStyle style, out Roman? result)
+    {
+        try
+        {
+            result = Parse(roman, style);
+            return true;
+        }
+        catch (ArgumentException)
+        {
+            result = null;
+            return false;
+        }
+        catch (FormatException)
+        {
+            result = null;
+            return false;
+        }
+    }
+
     public static implicit operator int(Roman r)                                                                                                                                         
     {                                                                                                                                                                                    
         ArgumentNullException.ThrowIfNull(r);                                                                                                                                            
