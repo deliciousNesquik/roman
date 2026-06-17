@@ -123,6 +123,20 @@ public class RomanTest
         Assert.AreEqual(expected, r.ToInt());
     }
 
+    [TestMethod]
+    public void Ctor_String_OverflowsIntAccumulator_ThrowsArgumentOutOfRangeException()
+    {
+        // 4 294 968 символов 'M' => 1000 * 4 294 968 = 4 294 968 000.
+        // При накоплении в int значение заворачивалось по модулю 2^32 в 704
+        // и проходило финальную проверку диапазона, молча возвращая неверный
+        // результат. С аккумулятором long переполнения нет — должно бросать.
+        var garbage = new string('M', 4_294_968);
+
+        var ex = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new Roman(garbage));
+        Assert.AreEqual("roman", ex.ParamName);
+        StringAssert.Contains(ex.Message, "between 1 and 3999");
+    }
+
     #endregion
 
     #region Tests Ctor(Roman)

@@ -213,8 +213,8 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
 
         if (roman.StartsWith("-"))
             throw new ArgumentOutOfRangeException(nameof(roman), "Value must be positive.");
-
-        var result = 0;
+        
+        long result = 0;
         for (int i = roman.Length - 1, before = 0; i >= 0; i--)
         {
             var current = GetValue(roman[i]);
@@ -223,7 +223,7 @@ public sealed class Roman : IComparable<Roman>, IEquatable<Roman>
             before = current;
         }
 
-        return result is < 1 or > 3999 ? throw new ArgumentOutOfRangeException(nameof(roman), "Value must be between 1 and 3999.") : result;
+        return result is < 1 or > 3999 ? throw new ArgumentOutOfRangeException(nameof(roman), "Value must be between 1 and 3999.") : (int)result;
     }
 
     private static string ToRoman(int value)
